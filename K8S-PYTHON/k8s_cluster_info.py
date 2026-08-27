@@ -10,5 +10,10 @@ nodes = v1.list_node()
 
 for node in nodes.items:
     print("Node Name:", node.metadata.name)
-    print("Status:", node.status.conditions[-1].type)
+
+    for condition in node.status.conditions:
+        if condition.type == "Ready":
+            print("Status:", condition.status)
+            break
+
     print("-" * 30)

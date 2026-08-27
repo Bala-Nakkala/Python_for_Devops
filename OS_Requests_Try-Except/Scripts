@@ -1,0 +1,120 @@
+# Core Python Modules for DevOps (OS, Requests, Try-Except)
+
+---
+
+## 1. The 'os' Module
+
+### What is it?
+The `os` module is a built-in Python library that allows your script to interact directly with the underlying Operating System (Linux, Windows, or macOS).
+
+### Where do we use it?
+* **CI/CD Pipelines:** Inside Jenkins or GitLab CI to read dynamic variables passed by the pipeline.
+* **Docker/Kubernetes:** To read environment variables injected into containers.
+* **DevOps Scripts:** To navigate directories, check if files exist, or create new folders dynamically.
+
+### What are its uses?
+* **Security (Secret Management):** The biggest use case is hiding sensitive information (like AWS Keys, GitHub Tokens, or Database Passwords). Instead of hardcoding passwords in the script, we store them in the OS and use `os.getenv()` to read them securely.
+* **File System Operations:** To automate creating, moving, or deleting log files in a server.
+
+### Python Script Example (Reading Secrets Securely)
+```python
+import os
+import sys
+
+def connect_to_database():
+    # Reading passwords securely from the Ubuntu Brain (Environment Variables)
+    db_user = os.getenv("DB_USERNAME")
+    db_pass = os.getenv("DB_PASSWORD")
+    
+    # Checking if the secrets actually exist
+    if not db_user or not db_pass:
+        print("🚨 ALERT: Database credentials are missing in the OS!")
+        sys.exit(1) # Stop the script immediately
+        
+    print(f"✅ Connecting to Database using user: {db_user}")
+    print("Database connection successful!")
+
+connect_to_database()
+```
+
+---
+
+## 2. The 'requests' Module
+
+### What is it?
+The `requests` module is a popular third-party Python library used to send HTTP requests across the internet. It acts as a bridge for your Python script to communicate with APIs of other applications.
+
+### Where do we use it?
+* **Alerting Systems:** To send automated notifications to communication tools.
+* **Issue Tracking:** To automatically log bugs in project management software.
+* **Infrastructure Automation:** To trigger remote Jenkins builds or interact with Cloud APIs directly.
+
+### What are its uses?
+* **Slack/Teams Alerts:** Sending a message to a Slack channel when a server goes down.
+* **Jira/GitHub Integration:** Automatically creating a Jira ticket or GitHub Issue when a Kubernetes Pod fails.
+* **Health Checks:** Pinging a website or API to check if it is returning a `200 OK` status.
+
+### Python Script Example (API Communication)
+```python
+import requests
+
+def check_website_health():
+    url = "[https://api.github.com](https://api.github.com)"
+    
+    try:
+        # Sending a GET request to the URL with a 5-second timeout
+        response = requests.get(url, timeout=5)
+        
+        # Checking if the API returned a 200 Success code
+        if response.status_code == 200:
+            print(f"✅ SUCCESS: API is up and running! (Status Code: {response.status_code})")
+        else:
+            print(f"⚠️ WARNING: API returned an unexpected status: {response.status_code}")
+            
+    except requests.exceptions.RequestException as e:
+        print(f"🚨 NETWORK ERROR: Could not connect to the API. Details: {e}")
+
+check_website_health()
+```
+
+---
+
+## 3. Try-Except (Error Handling)
+
+### What is it?
+`try-except` is not a module, but a fundamental Python concept called Exception Handling. It acts as a safety net that catches runtime errors and prevents the entire script from crashing abruptly.
+
+### Where do we use it?
+* **Every Production Script:** It is a mandatory standard for any code running in a production environment.
+* **Network & Database Calls:** Whenever connecting to external services (like AWS, GitHub, or Databases) where failure is possible due to network issues.
+* **Subprocess Execution:** When running Linux/Kubernetes commands that might fail.
+
+### What are its uses?
+* **Preventing Crashes:** Ensuring that if step 1 fails, the script handles it gracefully instead of throwing a massive error and stopping the whole CI/CD pipeline.
+* **Custom Error Messages:** Providing clear, human-readable error messages (e.g., "Invalid Token") instead of confusing system tracebacks.
+* **Fallback Mechanisms:** Triggering an alternative action if the main action fails (e.g., if restarting a service fails, trigger a Slack alert).
+
+### Python Script Example (Preventing Script Crashes)
+```python
+import subprocess
+
+def check_kubernetes():
+    print("Starting Infrastructure Check...")
+    
+    # TRY block contains the risky code that might fail
+    try:
+        # Deliberately using a wrong command ('kubctl' instead of 'kubectl')
+        print("Executing Kubernetes command...")
+        subprocess.run(["kubctl", "get", "pods"], check=True)
+        print("✅ Command executed successfully!")
+        
+    # EXCEPT block catches the specific error and handles it
+    except FileNotFoundError:
+        print("🚨 ERROR: The command 'kubectl' was not found on this server.")
+        print("Executing Fallback: Sending alert to the DevOps team...")
+        
+    # This line will still print because the script didn't crash!
+    print("Pipeline execution completed safely.")
+
+check_kubernetes()
+```

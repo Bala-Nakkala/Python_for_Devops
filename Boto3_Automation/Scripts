@@ -1,0 +1,107 @@
+# AWS Boto3 Complete Guide for DevOps
+
+## 1. What is Boto3?
+Boto3 is the official Amazon Web Services (AWS) SDK (Software Development Kit) for Python. It allows developers and DevOps engineers to write Python scripts to interact with AWS services programmatically, instead of performing tasks manually through the AWS Management Console.
+
+## 2. Where do we use it?
+* CI/CD Pipelines (Inside tools like Jenkins, GitLab CI, or GitHub Actions)
+* Serverless Functions (Inside AWS Lambda to trigger automated workflows)
+* Linux/Ubuntu Servers (As standalone automation scripts managed by DevOps engineers)
+
+## 3. What are the uses of Boto3?
+* Cost Optimization: Automatically starting and stopping non-production servers.
+* Infrastructure Cleanup: Finding and deleting unused resources to save money.
+* Security & Auditing: Scanning the AWS environment to find security vulnerabilities.
+* Automated Backups: Taking automated snapshots of instances and uploading to S3.
+
+---
+
+## 4. EC2 Boto3 Module
+**Use Case:** Automatically stop all running Development (Dev) instances to save costs.
+
+```python
+import boto3
+
+def stop_dev_ec2_instances():
+    ec2 = boto3.client('ec2', region_name='us-east-1')
+    
+    response = ec2.describe_instances(
+        Filters=[
+            {'Name': 'instance-state-name', 'Values': ['running']},
+            {'Name': 'tag:Environment', 'Values': ['Dev']}
+        ]
+    )
+    
+    instances = [i['InstanceId'] for r in response['Reservations'] for i in r['Instances']]
+            
+    if instances:
+        ec2.stop_instances(InstanceIds=instances)
+        print(f"✅ Stopped Dev Instances to save costs: {instances}")
+    else:
+        print("✅ No running Dev instances found.")
+
+stop_dev_ec2_instances()
+```
+
+---
+
+## 5. IAM Boto3 Module
+**Use Case:** List all IAM users for security and compliance auditing.
+
+```python
+import boto3
+
+def list_iam_users():
+    iam = boto3.client('iam')
+    response = iam.list_users()
+    
+    print("👤 IAM Users List:")
+    for user in response['Users']:
+        print(f" - {user['UserName']} (Created on: {user['CreateDate']})")
+
+list_iam_users()
+```
+
+---
+
+## 6. VPC Boto3 Module
+**Use Case:** Find unused Elastic IPs (EIPs) to reduce AWS billing.
+
+```python
+import boto3
+
+def find_unused_elastic_ips():
+    ec2 = boto3.client('ec2', region_name='us-east-1')
+    response = ec2.describe_addresses()
+    
+    unused_ips = []
+    for address in response['Addresses']:
+        if 'AssociationId' not in address:
+            unused_ips.append(address['PublicIp'])
+            
+    if unused_ips:
+        print(f"⚠️ Unused Elastic IPs found (Costing Money): {unused_ips}")
+    else:
+        print("✅ No unused Elastic IPs found.")
+
+find_unused_elastic_ips()
+```
+
+---
+
+## 7. S3 Boto3 Module
+**Use Case:** List all S3 buckets in the AWS account to audit storage.
+
+```python
+import boto3
+
+def list_all_s3_buckets():
+    s3 = boto3.client('s3')
+    response = s3.list_buckets()
+    
+    print(f"Total Buckets: {len(response['Buckets'])}")
+    for bucket in response['Buckets']:
+        print(f"🪣 Bucket Name: {bucket['Name']}")
+
+list_all_s3_buckets()
+```

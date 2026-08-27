@@ -1,0 +1,6 @@
+INFO:root:Application Started
+WARNING:root:Disk Space Low
+ERROR:root:Connection Failed
+2026-06-11 10:03:25,420 - INFO - Application Started
+2026-06-11 10:03:25,420 - WARNING - Disk Space Low
+2026-06-11 10:03:25,420 - ERROR - Connection Failed
